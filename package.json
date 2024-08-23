@@ -1,0 +1,24 @@
+{
+  "name": "pine-pos",
+  "version": "0.1.0",
+  "description": "The first Cashu POS",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon"
+  },
+  "keywords": [],
+  "author": "Egge",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.0",
+    "dotenv": "^16.4.5",
+    "esbuild": "^0.23.1",
+    "nodemon": "^3.1.4",
+    "typescript": "^5.5.4"
+  }
+}
