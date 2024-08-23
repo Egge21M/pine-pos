@@ -9,7 +9,7 @@ esbuild
     platform: "node",
     entryPoints: ["src/index.ts"],
     bundle: true,
-    sourcemap: "external",
+    sourcemap: "linked",
   })
   .then(() => {
     console.log("Server built sucessfully");
