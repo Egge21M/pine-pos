@@ -39,22 +39,14 @@ export class OrderStore {
   }
 
   createOrder(amount: number, unit: string) {
-    const pr = new PaymentRequest(
-      unit,
-      [{ type: "post", target: "http://localhost:8000/api/v1/pay" }],
-      amount,
-      "https://mint.minibits.cash/Bitcoin",
-      "Test Description",
-      "123",
-      undefined,
-    );
-    const payment = PaymentStore.getInstance().savePayment(pr);
+    const payment = PaymentStore.getInstance().createPayment(unit, amount);
     const order = new Order(
       this.keyPointer,
       Math.floor(Date.now() / 1000),
       unit,
       amount,
       payment.id,
+      false,
     );
     this.paymentIdIndex[payment.id] = this.keyPointer;
     this.orders[this.keyPointer] = order;

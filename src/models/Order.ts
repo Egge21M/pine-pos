@@ -1,10 +1,18 @@
 export class Order {
   constructor(
-    public id: number,
-    public createdAt: number,
-    public unit: string,
-    public amount: number,
-    public paymentId: number,
-    public isPaid: boolean,
+    readonly id: number,
+    readonly createdAt: number,
+    readonly unit: string,
+    readonly amount: number,
+    readonly paymentId: string,
+    private _isPaid: boolean,
   ) {}
+
+  get isPaid() {
+    return this._isPaid;
+  }
+
+  setOrderPaid() {
+    this._isPaid = true;
+  }
 }

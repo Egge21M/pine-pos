@@ -14,7 +14,16 @@ export class PaymentStore {
     throw new Error("not found");
   }
 
-  savePayment(pr: PaymentRequest) {
+  createPayment(unit: string, amount: number) {
+    const pr = new PaymentRequest(
+      unit,
+      [{ type: "post", target: "http://localhost:8000/api/v1/pay" }],
+      amount,
+      "https://mint.minibits.cash/Bitcoin",
+      "Test Description",
+      String(this.idPointer),
+      undefined,
+    );
     const payment = new Payment(this.idPointer, pr);
     this.payments[this.idPointer] = payment;
     this.idPointer++;
