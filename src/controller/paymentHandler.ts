@@ -1,5 +1,5 @@
 import { CashuMint, CashuWallet, getDecodedToken } from "@cashu/cashu-ts";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { OrderStore } from "../store/orderStore";
 import { Order } from "../models/Order";
 import { PaymentStore } from "../store/PaymentStore";

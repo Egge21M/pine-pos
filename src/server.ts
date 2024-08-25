@@ -1,11 +1,10 @@
 import Express from "express";
-import { paymentHandler } from "./controller/paymentHandler";
 import bodyParser from "body-parser";
+import { apiRouter } from "./router";
 
 const app = Express();
 
 app.use(bodyParser.json());
-
-app.post("/api/v1/pay", paymentHandler);
+app.use("/api/v1", apiRouter);
 
 export default app;
