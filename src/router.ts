@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { paymentHandler } from "./controller/paymentHandler";
-import { createOrderHandler } from "./controller/orderHandler";
+import {
+  createOrderHandler,
+  getOrderDetailsHandler,
+} from "./controller/orderHandler";
 
 export const apiRouter = Router();
 
 apiRouter.post("/pay", paymentHandler);
 
 apiRouter.post("/order", createOrderHandler);
+apiRouter.get("/order", getOrderDetailsHandler);

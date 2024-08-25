@@ -4,7 +4,7 @@ export class Order {
     readonly createdAt: number,
     readonly unit: string,
     readonly amount: number,
-    readonly paymentId: string,
+    readonly paymentId: number,
     private _isPaid: boolean,
   ) {}
 
@@ -14,5 +14,16 @@ export class Order {
 
   setOrderPaid() {
     this._isPaid = true;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      createdAt: this.createdAt,
+      unit: this.unit,
+      amount: this.amount,
+      paymentId: this.paymentId,
+      isPaid: this._isPaid,
+    };
   }
 }

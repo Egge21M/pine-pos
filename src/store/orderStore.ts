@@ -24,7 +24,7 @@ export class OrderStore {
     if (this.orders[id]) {
       return this.orders[id];
     }
-    throw new Error("not found");
+    return undefined;
   }
 
   getOrderByPaymentId(id: number) {
