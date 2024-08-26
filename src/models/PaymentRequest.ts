@@ -8,7 +8,7 @@ export class PaymentRequest {
     public amount?: number,
     public mint?: string,
     public description?: string,
-    public memo?: string,
+    public memo: string,
     public lock?: string,
   ) {}
 

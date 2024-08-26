@@ -11,27 +11,34 @@ export async function paymentHandler(req: Request, res: Response) {
   if (!decodedToken.memo) {
     return res.status(400).json({ error: true, message: "missing token" });
   }
-  const parsedId = Number(decodedToken.memo);
 
   let order: Order | undefined;
   try {
-    order = OrderStore.getInstance().getOrderByPaymentId(parsedId);
-    console.log(order);
+    order = await OrderStore.getInstance().getOrderByPaymentId(
+      decodedToken.memo,
+    );
   } catch {
-    return res.status(404).json({ error: true, message: "payment not found" });
+    return res
+      .status(500)
+      .json({ error: true, message: "something went wrong" });
   }
-  const payment = PaymentStore.getInstance().getPaymentById(parsedId);
+  if (!order) {
+    return res.status(404).json({ error: true, message: "not found" });
+  }
+  const paymentRequest = await PaymentStore.getInstance().getPaymentById(
+    order.paymentId,
+  );
   const tokenAmount = decodedToken.token[0].proofs.reduce(
     (a, c) => a + c.amount,
     0,
   );
-  if (payment.request.amount && tokenAmount < payment.request.amount) {
+  if (order.amount && tokenAmount !== order.amount) {
     return res.status(400).json({ error: true, message: "invalid token" });
   }
 
   if (
-    payment.request.mint &&
-    decodedToken.token[0].mint !== payment.request.mint
+    paymentRequest.mint &&
+    decodedToken.token[0].mint !== paymentRequest.mint
   ) {
     return res.status(400).json({ error: true, message: "invalid token" });
   }

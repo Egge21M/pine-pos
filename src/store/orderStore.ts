@@ -1,56 +1,71 @@
 import { Order } from "../models/Order";
-import { PaymentRequest } from "../models/PaymentRequest";
+import { DatabaseAdapter } from "../types";
 import { PaymentStore } from "./PaymentStore";
 
 export class OrderStore {
-  private orders: {
-    [oderKey: number]: Order;
-  } = {};
-  private paymentIdIndex: {
-    [paymentId: number]: number;
-  } = {};
-  private keyPointer: number = 0;
   private static instance: OrderStore;
+  private db: DatabaseAdapter;
 
-  static getInstance() {
+  constructor(db: DatabaseAdapter) {
+    this.db = db;
+  }
+
+  static getInstance(db?: DatabaseAdapter) {
     if (OrderStore.instance) {
       return OrderStore.instance;
     }
-    OrderStore.instance = new OrderStore();
+    if (!db) {
+      throw new Error(
+        "Instance not created yet. Need to pass database adatper",
+      );
+    }
+    OrderStore.instance = new OrderStore(db);
     return OrderStore.instance;
   }
 
-  getOrderById(id: number) {
-    if (this.orders[id]) {
-      return this.orders[id];
+  async getOrderById(id: string) {
+    const res = await this.db.query("SELECT * FROM orders WHERE id = ?", [id]);
+    if (res.rows.length < 1) {
+      return undefined;
     }
-    return undefined;
+    return res[0];
   }
 
-  getOrderByPaymentId(id: number) {
-    if (this.orders[this.paymentIdIndex[id]]) {
-      return this.orders[this.paymentIdIndex[id]];
+  async getOrderByPaymentId(id: string) {
+    const res = await this.db.query(
+      "SELECT * FROM orders WHERE payment_id = ?",
+      [id],
+    );
+    if (res.rows.length < 1) {
+      return undefined;
     }
-    throw new Error("not found");
+    return res.rows[0];
   }
 
-  getAllOrders() {
-    return Object.keys(this.orders).map((id) => this.orders[id]);
+  async getAllOrders() {
+    //TODO: Add pagination
+    const res = await this.db.query("SELECT * FROM orders");
+    return res.rows;
   }
 
-  createOrder(amount: number, unit: string) {
-    const payment = PaymentStore.getInstance().createPayment(unit, amount);
+  async createOrder(amount: number, unit: string) {
+    const payment = await PaymentStore.getInstance().createPayment(
+      unit,
+      amount,
+    );
+    const res = await this.db.query(
+      `INSERT into orders (created_at, unit, amount, payment_id, status) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [Math.floor(Date.now() / 1000), unit, amount, payment.memo, "UNPAID"],
+    );
+    console.log(res);
     const order = new Order(
-      this.keyPointer,
+      res.rows[0].id,
       Math.floor(Date.now() / 1000),
       unit,
       amount,
-      payment.id,
-      false,
+      payment.memo,
+      "UNPAID",
     );
-    this.paymentIdIndex[payment.id] = this.keyPointer;
-    this.orders[this.keyPointer] = order;
-    this.keyPointer++;
     return order;
   }
 }

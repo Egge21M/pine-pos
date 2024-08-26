@@ -1,3 +1,10 @@
+export interface DatabaseAdapter {
+  query: (
+    query: string,
+    values?: any[],
+  ) => Promise<{ rows: any[]; rowCount: number | null }>;
+}
+
 export type RawTransport = {
   t: string;
   a: string;

@@ -1,46 +1,73 @@
+import { randomBytes } from "crypto";
 import { PaymentRequest } from "../models/PaymentRequest";
+import { DatabaseAdapter } from "../types";
 
 export class PaymentStore {
-  private payments: {
-    [prId: number]: Payment;
-  } = {};
-  private idPointer: number = 0;
   private static instance: PaymentStore;
+  private db: DatabaseAdapter;
 
-  getPaymentById(id: number) {
-    if (this.payments[id]) {
-      return this.payments[id];
-    }
-    throw new Error("not found");
+  constructor(db: DatabaseAdapter) {
+    this.db = db;
   }
 
-  createPayment(unit: string, amount: number) {
+  async getPaymentById(id: string) {
+    const res = await this.db.query(
+      "SELECT * FROM payment_requests WHERE id = $1;",
+      [id],
+    );
+    if (res.rows.length < 1) {
+      throw new Error("not found");
+    }
+    return new PaymentRequest(
+      res.rows[0].unit,
+      res.rows[0].transport,
+      res.rows[0].amount,
+      res.rows[0].mint,
+      res.rows[0].description,
+      res.rows[0].id,
+      res.rows[0].lock,
+    );
+  }
+
+  async createPayment(unit: string, amount: number) {
+    const id = randomBytes(16).toString("hex");
     const pr = new PaymentRequest(
       unit,
       [{ type: "post", target: "http://localhost:8000/api/v1/pay" }],
       amount,
       "https://mint.minibits.cash/Bitcoin",
       "Test Description",
-      String(this.idPointer),
+      id,
       undefined,
     );
-    const payment = new Payment(this.idPointer, pr);
-    this.payments[this.idPointer] = payment;
-    this.idPointer++;
-    return payment;
+    console.log(pr.transport);
+    const res = await this.db.query(
+      `INSERT INTO payment_requests (id, unit, transport, amount, mint, description, lock) VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+      [
+        pr.memo,
+        pr.unit,
+        JSON.stringify(pr.transport),
+        pr.amount,
+        pr.mint,
+        pr.description,
+        pr.lock,
+      ],
+    );
+    if (res.rowCount === 0) {
+      throw new Error("Failed to insert payment");
+    }
+    return pr;
   }
-  static getInstance() {
+  static getInstance(db?: DatabaseAdapter) {
     if (PaymentStore.instance) {
       return PaymentStore.instance;
     }
-    PaymentStore.instance = new PaymentStore();
+    if (!db) {
+      throw new Error(
+        "Instance not created yet. Need to pass database adatper",
+      );
+    }
+    PaymentStore.instance = new PaymentStore(db);
     return PaymentStore.instance;
   }
-}
-
-class Payment {
-  constructor(
-    public id: number,
-    public request: PaymentRequest,
-  ) {}
 }
