@@ -1,9 +1,15 @@
-import { CashuMint, CashuWallet, getDecodedToken } from "@cashu/cashu-ts";
+import {
+  CashuMint,
+  CashuWallet,
+  getDecodedToken,
+  Proof,
+} from "@cashu/cashu-ts";
 import { Request, Response } from "express";
 import { OrderStore } from "../store/OrderStore";
 import { Order } from "../models/Order";
 import { PaymentStore } from "../store/PaymentStore";
 import { json } from "body-parser";
+import { ClaimStore } from "../store/ClaimStore";
 
 export async function paymentHandler(req: Request, res: Response) {
   const { token } = req.body;
@@ -43,17 +49,23 @@ export async function paymentHandler(req: Request, res: Response) {
   ) {
     return res.status(400).json({ error: true, message: "invalid token" });
   }
+  let receivedProofs: Proof[];
   try {
     const wallet = new CashuWallet(new CashuMint(process.env.MINT_URL!));
-    const receivedProofs = await wallet.receive(decodedToken);
+    receivedProofs = await wallet.receive(decodedToken);
   } catch {
     console.log("Tried spent token...");
     return res.status(400).json({ error: true, message: "invalid token" });
   }
   try {
-    OrderStore.getInstance().setOrderPaid(decodedToken.memo);
+    await ClaimStore.getInstance().saveProofs(
+      receivedProofs,
+      decodedToken.memo,
+    );
+    await OrderStore.getInstance().setOrderPaid(decodedToken.memo);
     return res.status(200).json({ error: false });
-  } catch {
+  } catch (e) {
+    console.log(e);
     //TODO: Handle DB failure after token has been received
   }
 }

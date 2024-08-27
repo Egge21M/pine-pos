@@ -3,8 +3,6 @@ const path = require("path");
 const { Client } = require("pg");
 
 const client = new Client();
-client.c;
-console.log(process.env);
 
 function getMigrationFiles() {
   return fs

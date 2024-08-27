@@ -53,7 +53,6 @@ export class OrderStore {
       return undefined;
     }
     const result = res.rows[0];
-    console.log(result);
     return {
       ...result,
       creq: new PaymentRequest(

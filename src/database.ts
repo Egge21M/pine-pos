@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { OrderStore } from "./store/OrderStore";
 import { PaymentStore } from "./store/PaymentStore";
+import { ClaimStore } from "./store/ClaimStore";
 
 class PostgresAdapter {
   pool: Pool;
@@ -18,4 +19,5 @@ export function initDataStore() {
   const db = new PostgresAdapter();
   OrderStore.getInstance(db);
   PaymentStore.getInstance(db);
+  ClaimStore.getInstance(db);
 }
