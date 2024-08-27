@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { OrderStore } from "../store/orderStore";
+import { OrderStore } from "../store/OrderStore";
 
 export async function createOrderHandler(req: Request, res: Response) {
   const { amount, unit } = req.body;
@@ -26,11 +26,11 @@ export async function getOrderDetailsHandler(
     return res.status(400).json({ error: true, message: "invalid parameters" });
   }
   try {
-    const order = OrderStore.getInstance().getOrderById(Number(id));
-    if (!order) {
+    const details = await OrderStore.getInstance().getOrderDetailsById(id);
+    if (!details) {
       return res.status(404).json({ error: true, message: "not found" });
     }
-    return res.status(200).json({ error: false, data: order });
+    return res.status(200).json({ error: false, data: details });
   } catch (e) {
     console.log(e);
     return res
@@ -40,14 +40,14 @@ export async function getOrderDetailsHandler(
 }
 
 export async function getPaginatedOrders(req: Request, res: Response) {
-  const { page = "0" } = req.query as { page: string };
+  const { page = "1" } = req.query as { page: string };
   const parsedPage = parseInt(page);
 
   if (isNaN(parsedPage) || parsedPage < 1) {
     return res.status(400).json({ error: true, message: "invalid parameters" });
   }
 
-  //TODO: Implement pagination once database is added
-  const allOrder = OrderStore.getInstance().getAllOrders();
-  return res.json(200).json({ error: false, data: allOrder });
+  const allOrder =
+    await OrderStore.getInstance().getPaginatedOrders(parsedPage);
+  return res.status(200).json({ error: false, data: allOrder });
 }

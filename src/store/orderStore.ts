@@ -1,4 +1,5 @@
 import { Order } from "../models/Order";
+import { PaymentRequest } from "../models/PaymentRequest";
 import { DatabaseAdapter } from "../types";
 import { PaymentStore } from "./PaymentStore";
 
@@ -23,17 +24,52 @@ export class OrderStore {
     return OrderStore.instance;
   }
 
-  async getOrderById(id: string) {
-    const res = await this.db.query("SELECT * FROM orders WHERE id = ?", [id]);
+  async setOrderPaid(id: string) {
+    const res = await this.db.query(
+      `
+    UPDATE orders
+    SET status = 'PAID'
+    WHERE payment_id = $1;`,
+      [id],
+    );
+    console.log(res);
+    if (res.rowCount === 0) {
+      throw new Error("Failed to update");
+    }
+  }
+
+  async getOrderDetailsById(id: string) {
+    const res = await this.db.query(
+      `
+    SELECT orders.*, payment_requests.*
+    FROM orders
+    JOIN payment_requests
+    ON orders.payment_id = payment_requests.memo 
+    WHERE orders.id = $1;
+`,
+      [id],
+    );
     if (res.rows.length < 1) {
       return undefined;
     }
-    return res[0];
+    const result = res.rows[0];
+    console.log(result);
+    return {
+      ...result,
+      creq: new PaymentRequest(
+        result.unit,
+        result.transport,
+        result.memo,
+        result.mint,
+        result.description,
+        result.lock,
+      ).toEncodedRequest(),
+    };
   }
 
   async getOrderByPaymentId(id: string) {
     const res = await this.db.query(
-      "SELECT * FROM orders WHERE payment_id = ?",
+      "SELECT * FROM orders WHERE payment_id = $1;",
       [id],
     );
     if (res.rows.length < 1) {
