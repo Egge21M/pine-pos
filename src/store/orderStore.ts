@@ -42,12 +42,16 @@ export class OrderStore {
     return res.rows[0];
   }
 
-  async getAllOrders() {
-    //TODO: Add pagination
-    const res = await this.db.query("SELECT * FROM orders");
+  async getPaginatedOrders(page: number = 1) {
+    if (page < 1) {
+      throw new Error("invalid page");
+    }
+    const offset = 25 * (page - 1);
+    const res = await this.db.query(`
+    SELECT * FROM orders ORDER BY id LIMIT 25 OFFSET ${offset};
+    `);
     return res.rows;
   }
-
   async createOrder(amount: number, unit: string) {
     const payment = await PaymentStore.getInstance().createPayment(
       unit,
