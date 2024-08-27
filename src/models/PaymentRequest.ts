@@ -5,10 +5,10 @@ export class PaymentRequest {
   constructor(
     public unit: string,
     public transport: Transport[],
+    public memo: string,
     public amount?: number,
     public mint?: string,
     public description?: string,
-    public memo: string,
     public lock?: string,
   ) {}
 
@@ -45,14 +45,17 @@ export class PaymentRequest {
     const encodedData = encodedRequest.slice(5);
     const data = Buffer.from(encodedData, "base64");
     const decoded = decodeCBOR(data) as RawPaymentRequest;
+    if (!decoded.m) {
+      throw new Error("unsupported pr: memo undefined");
+    }
     const transports = decoded.t.map((t) => ({ type: t.t, target: t.a }));
     return new PaymentRequest(
       decoded.u,
       transports,
+      decoded.m,
       decoded.a,
       decoded.r,
       decoded.d,
-      decoded.m,
       decoded.l,
     );
   }

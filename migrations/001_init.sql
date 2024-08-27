@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 
 CREATE TABLE IF NOT EXISTS payment_requests (
-    id TEXT PRIMARY KEY,
+    memo TEXT PRIMARY KEY,
     unit TEXT NOT NULL,
     transport JSONB NOT NULL,
     amount INTEGER NOT NULL,
