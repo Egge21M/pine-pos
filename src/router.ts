@@ -8,7 +8,7 @@ import {
 
 export const apiRouter = Router();
 
-apiRouter.post("/pay", paymentHandler);
+apiRouter.post("/pay/:id", paymentHandler);
 
 apiRouter.get("/order", getOrderDetailsHandler);
 apiRouter.get("/orders", getPaginatedOrders);

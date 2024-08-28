@@ -59,6 +59,7 @@ export class OrderStore {
         result.unit,
         result.transport,
         result.memo,
+        result.amount,
         result.mint,
         result.description,
         result.lock,

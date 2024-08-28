@@ -8,22 +8,17 @@ import { Request, Response } from "express";
 import { OrderStore } from "../store/OrderStore";
 import { Order } from "../models/Order";
 import { PaymentStore } from "../store/PaymentStore";
-import { json } from "body-parser";
 import { ClaimStore } from "../store/ClaimStore";
 
 export async function paymentHandler(req: Request, res: Response) {
   const { token } = req.body;
+  const { id } = req.params;
 
   const decodedToken = getDecodedToken(token);
-  if (!decodedToken.memo) {
-    return res.status(400).json({ error: true, message: "missing token" });
-  }
 
   let order: Order | undefined;
   try {
-    order = await OrderStore.getInstance().getOrderByPaymentId(
-      decodedToken.memo,
-    );
+    order = await OrderStore.getInstance().getOrderByPaymentId(id);
   } catch {
     return res
       .status(500)
@@ -32,9 +27,7 @@ export async function paymentHandler(req: Request, res: Response) {
   if (!order) {
     return res.status(404).json({ error: true, message: "not found" });
   }
-  const paymentRequest = await PaymentStore.getInstance().getPaymentById(
-    decodedToken.memo,
-  );
+  const paymentRequest = await PaymentStore.getInstance().getPaymentById(id);
   const tokenAmount = decodedToken.token[0].proofs.reduce(
     (a, c) => a + c.amount,
     0,
@@ -58,11 +51,8 @@ export async function paymentHandler(req: Request, res: Response) {
     return res.status(400).json({ error: true, message: "invalid token" });
   }
   try {
-    await ClaimStore.getInstance().saveProofs(
-      receivedProofs,
-      decodedToken.memo,
-    );
-    await OrderStore.getInstance().setOrderPaid(decodedToken.memo);
+    await ClaimStore.getInstance().saveProofs(receivedProofs, id);
+    await OrderStore.getInstance().setOrderPaid(id);
     return res.status(200).json({ error: false });
   } catch (e) {
     console.log(e);

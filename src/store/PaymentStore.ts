@@ -30,11 +30,11 @@ export class PaymentStore {
   }
 
   async createPayment(unit: string, amount: number) {
-    const memo = randomBytes(16).toString("hex");
+    const id = randomBytes(16).toString("hex");
     const pr = new PaymentRequest(
       unit,
-      [{ type: "post", target: "http://localhost:8000/api/v1/pay" }],
-      memo,
+      [{ type: "post", target: `http://localhost:8000/api/v1/pay/${id}` }],
+      id,
       amount,
       "https://mint.minibits.cash/Bitcoin",
       "Test Description",
